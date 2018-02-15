@@ -23,7 +23,7 @@ class PullRequest
   end
 
   def as_json
-    { 'ref' => sha, 'pr' => id.to_s }
+    { 'ref' => sha, 'pr' => id.to_s, 'updated_at' => updated_at }
   end
 
   def id
@@ -36,6 +36,10 @@ class PullRequest
 
   def url
     @pr['html_url']
+  end
+
+  def updated_at
+    @pr['head']['repo']['updated_at']
   end
 
   private

@@ -8,9 +8,11 @@ module Filters
     end
 
     def pull_requests
-      @pull_requests ||= Octokit.pulls(input.source.repo, pull_options).map do |pr|
+      @pull_requests ||= Octokit.pulls(input.source.repo, pull_options).sort_by { |pr1, pr2|
+        pr1 <=> pr2
+      }.map { |pr|
         PullRequest.new(pr: pr)
-      end
+      }
     end
 
     private
@@ -18,9 +20,7 @@ module Filters
     attr_reader :input
 
     def pull_options
-      options = { state: 'open', sort: 'updated', direction: 'asc' }
-      options[:base] = input.source.base if input.source.base
-      options
+      input.source.base ? { base: input.source.base } : {}
     end
   end
 end
