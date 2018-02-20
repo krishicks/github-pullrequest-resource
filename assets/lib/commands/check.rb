@@ -8,7 +8,18 @@ require_relative '../repository'
 module Commands
   class Check < Commands::Base
     def output
-      repo.pull_requests
+      prs = repo.pull_requests
+
+      if prs.size > 1
+        sha_dates = prs.inject({}) { |memo, pr|
+          commit = Octokit.commit(input.source.repo, pr.sha)
+          memo[commit.sha] = commit.commit.committer.date
+          memo
+        }
+        return prs.sort_by { |l,r| sha_dates[l.sha] }
+      end
+
+      prs
     end
 
     private

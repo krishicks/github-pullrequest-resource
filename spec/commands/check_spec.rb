@@ -83,12 +83,14 @@ describe Commands::Check do
                   { number: 1, head: { sha: 'abcdef', repo: { full_name: 'jtarchie/test' } }, base: { repo: { full_name: 'jtarchie/test' } } },
                   { number: 2, head: { sha: 'zyxwvu', repo: { full_name: 'someotherowner/repo' } }, base: { repo: { full_name: 'jtarchie/test' } } }
                 ])
+      stub_json('https://api.github.com/repos/jtarchie/test/commits/abcdef', {sha: "abcdef", commit: { committer: { date: "2011-04-14T16:01:49Z" }}})
+      stub_json('https://api.github.com/repos/jtarchie/test/commits/zyxwvu', {sha: "zyxwvu", commit: { committer: { date: "2011-04-14T16:00:49Z" }}})
     end
 
-    it 'returns all PRs oldest to newest last' do
+    it 'returns all PRs ordered by committer date' do
       expect(check('source' => { 'repo' => 'jtarchie/test' }, 'version' => {})).to eq [
-        { 'ref' => 'abcdef', 'pr' => '1' },
-        { 'ref' => 'zyxwvu', 'pr' => '2' }
+        { 'ref' => 'zyxwvu', 'pr' => '2' },
+        { 'ref' => 'abcdef', 'pr' => '1' }
       ]
     end
 
@@ -120,6 +122,10 @@ describe Commands::Check do
 
       stub_body_json('https://api.github.com/repos/jtarchie/test/pulls?direction=asc&per_page=100&sort=updated&state=open', pull_requests[0..49], 'Link' => '<https://api.github.com/repos/jtarchie/test/pulls?direction=asc&per_page=100&sort=updated&state=open&page=2>; rel="next"')
       stub_body_json('https://api.github.com/repos/jtarchie/test/pulls?direction=asc&per_page=100&sort=updated&state=open&page=2', pull_requests[50..99])
+
+      pull_requests.each { |pr|
+        stub_json("https://api.github.com/repos/jtarchie/test/commits/#{pr[:head][:sha]}", {sha: pr[:head][:sha], commit: { committer: { date: "2011-04-14T16:01:49Z" }}})
+      }
 
       first_prs = check('source' => { 'repo' => 'jtarchie/test' })
       expect(first_prs.length).to eq 100
