@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'octokit'
+require 'date'
 
 class PullRequest
   def self.from_github(repo:, id:)
@@ -36,7 +37,23 @@ class PullRequest
   end
 
   def as_json
-    { 'ref' => sha, 'pr' => id.to_s }
+    { 'ref' => sha, 'pr' => id.to_s, 'timestamp' => timestamp }
+  end
+
+  def timestamp
+    [created_at, head_commit_date].max
+  end
+
+  def head_commit_date
+    head_commit.commit.committer.date
+  end
+
+  def head_commit
+    @head_commit ||= Octokit.commit(head_repo, sha)
+  end
+
+  def created_at
+    @pr['created_at']
   end
 
   def id

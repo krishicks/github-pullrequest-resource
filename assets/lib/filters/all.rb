@@ -20,7 +20,7 @@ module Filters
     attr_reader :input
 
     def pull_options
-      options = { state: 'open', sort: 'updated', direction: 'asc' }
+      options = { state: 'open' }
       options[:base] = input.source.base if input.source.base
       options
     end
